@@ -129,7 +129,9 @@ def main():
     return jsonify({"message": "Connected to API", "status": "ok"})
 
 # ============================
-# MAIN ENTRY POINT
+# MAIN ENTRY POINT \ VERCEL COMPLIANCE
 # ============================
+app.debug = True
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
