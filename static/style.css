@@ -1038,6 +1038,18 @@ h1, h2, h3, h4, h5, h6 {
     .login-card {
         padding: 38px 32px;
     }
+
+    .form-actions {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .btn-login-submit,
+    .btn-cancel {
+        font-size: 15px;
+        padding: 14px 20px;
+        min-height: 48px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1060,10 +1072,18 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 24px;
     }
 
-    .btn-login-submit {
+    .form-actions {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .btn-login-submit,
+    .btn-cancel {
         font-size: 14px;
         padding: 14px 20px;
         min-height: 48px;
+        width: 100%;
     }
 }
 
