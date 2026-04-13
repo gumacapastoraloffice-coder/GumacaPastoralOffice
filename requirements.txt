@@ -1,4 +1,4 @@
-flask==3.0.2
+flask
 flask-cors
-gunicorn==21.2.0
-supabase==2.5.0
+supabase
+python-dotenv
