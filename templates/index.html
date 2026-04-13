@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diocesan Of Gumaca</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- 🔹 Hamburger toggle button -->
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
+    <!-- 🔹 Sidebar navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='Diocese Logo.jpg') }}" width="50" alt="Diocese of Gumaca Logo">
+            <h3>Gumaca Registry</h3>
+        </div>
+
+        <!-- 🔹 Sidebar links -->
+        <nav>
+            <a href="#" class="nav-link" onclick="showSection('feed')">📰 Newsfeed</a>
+            <a href="#" class="nav-link" onclick="showSection('directory')">👥 Directory</a>
+        </nav>
+
+        <!-- 🔹 Sidebar footer (login/logout) -->
+        <div class="sidebar-footer">
+            {% if is_admin %}
+                <button onclick="location.href='/logout'" class="btn-logout">Logout</button>
+            {% else %}
+                <button onclick="showModal('loginModal')" class="btn-login" title="Admin Login">🔑</button>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- 🔹 Main content area -->
+    <main class="main-content">
+
+        <!-- 📰 Newsfeed Section -->
+        <div id="feed-section" class="section">
+            <div class="card post-activity">
+                <h3>Post Activity</h3>
+
+                <div class="post-box">
+                 <!-- Flexible textarea -->
+                <textarea id="post-content" placeholder="Share updates with the community..."></textarea>
+
+                <!-- Attachment preview -->
+                <div id="attachment-preview"></div>
+
+        <!-- Post actions -->
+        <div class="post-actions">
+            <label class="upload-btn">
+                📎 Attach Files
+                <input type="file" id="file-upload" multiple
+                accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt">
+            </label>
+
+            <span id="char-count"></span>
+
+            <button class="btn-primary post-btn" id="post-btn" disabled>
+                Post
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+            <!-- 🔹 Newsfeed list -->
+            <div id="newsfeed-list"></div>
+        </div>
+
+        <!-- 👥 Directory Section -->
+        <div id="directory-section" class="section" style="display:none;">
+            {% if is_admin %}
+            <div class="card">
+                <h3>Registration</h3>
+
+                <!-- 🔹 Member registration form -->
+                <div class="form-grid">
+                    <div class="field"><label for="m-name">Fullname</label><input type="text" id="m-name"></div>
+                    <div class="field"><label for="m-parish">Parish</label><input type="text" id="m-parish"></div>
+                    <div class="field"><label for="m-birth">Birthdate</label><input type="date" id="m-birth"></div>
+                    <div class="field"><label for="m-age">Age</label><input type="number" id="m-age"></div>
+                    <div class="field"><label for="m-joined">Joined (Year)</label><input type="number" id="m-joined"></div>
+                    <div class="field"><label for="m-email">Email</label><input type="email" id="m-email"></div>
+                    <div class="field"><label for="m-fb">FB Account</label><input type="text" id="m-fb"></div>
+                    <div class="field"><label for="m-mobile">Mobile Account</label><input type="text" id="m-mobile"></div>
+                    <div class="field"><label for="m-org">Organization</label><input type="text" id="m-org"></div>
+                    <div class="field"><label for="m-desig">Designation</label><input type="text" id="m-desig"></div>
+                    <div class="field full-width"><label for="m-addr">Address</label><input type="text" id="m-addr"></div>
+                </div>
+                <button onclick="saveMember()" class="btn-primary" style="margin-top:20px;">Save Member Information</button>
+            </div>
+            {% endif %}
+
+            <!-- 🔹 Directory table -->
+            <div class="card">
+                <h3>Leaders & Members</h3>
+                <!-- Search bar -->
+                <div class="search-container">
+                    <input type="text" id="member-search" placeholder="Search members by name, designation, parish, or address...">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead id="tableHeader">
+                            <tr><th>Name</th><th>Designation</th><th>Parish</th><th>Address</th></tr>
+                        </thead>
+                        <tbody id="memberData"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 🔹 Admin login modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content login-modal">
+            <div class="login-header">
+                <img src="{{ url_for('static', filename='Diocese Logo.jpg') }}" alt="Diocese of Gumaca Logo" class="login-logo">
+                <h3>Admin Sign In</h3>
+                <p>Access the administrative panel</p>
+            </div>
+            <form class="login-form">
+                <div class="input-group">
+                    <label for="admin-user">Username</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="admin-user" placeholder="Enter your username" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="admin-pass">Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="admin-pass" placeholder="Enter your password" required>
+                    </div>
+                </div>
+                <button type="button" onclick="handleLogin()" class="btn-login-primary">Sign In</button>
+            </form>
+            <div class="login-footer">
+                <button onclick="closeModal('loginModal')" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 External script -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
