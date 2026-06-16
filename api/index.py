@@ -62,7 +62,9 @@ def register_member():
 @app.route('/get_members')
 def get_members():
     try:
-        res = supabase.table("members").select("*").execute()
+        # Idinagdag ang .order("name", ascending=True) para maging alphabetical base sa Lastname
+        res = supabase.table("members").select("*").order("name", ascending=True).execute()
+        
         # For viewers, only return limited fields: name, designation, organization, parish, address
         if not session.get('logged_in'):
             limited_data = []
@@ -76,8 +78,10 @@ def get_members():
                     "_isViewer": True  # Flag to indicate viewer data
                 })
             return jsonify(limited_data)
-        # Admin gets all information
+            
+        # Admin gets all information (na naka-alphabetical order na rin!)
         return jsonify(res.data)
+        
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
