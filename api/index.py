@@ -72,16 +72,26 @@ def register_member():
         return jsonify({"success": False, "error": str(e)}), 400
 
 # Get all members (with access level control)
+# =====================================================
+# GET ALL MEMBERS (ROBUST VERSION WITH PYTHON FALLBACK SORT)
+# =====================================================
 @app.route('/get_members')
 def get_members():
     try:
-        # Idinagdag ang .order("name", ascending=True) para maging alphabetical base sa Lastname
-        res = supabase.table("members").select("*").order("name", ascending=True).execute()
+        # 1. Kunin muna nang simple ang data galing sa Supabase nang walang direct chain ordering para iwas crash
+        res = supabase.table("members").select("*").execute()
         
-        # For viewers, only return limited fields: name, designation, organization, parish, address
+        # Siguraduhing may laman ang nakuha, kung wala, gawing walang laman na listahan []
+        raw_data = res.data if res and hasattr(res, 'data') else []
+
+        # 2. Python Fallback Sorting: Mano-mano nating i-sort sa Python side para 100% ligtas at laging A-Z base sa name!
+        # Ginagamit ang .get('name', '').lower() para hindi magkaproblema kahit may uppercase/lowercase
+        sorted_data = sorted(raw_data, key=lambda x: x.get('name', '').lower() if x.get('name') else '')
+
+        # 3. For viewers, only return limited fields: name, designation, organization, parish, address
         if not session.get('logged_in'):
             limited_data = []
-            for member in res.data:
+            for member in sorted_data:
                 limited_data.append({
                     "name": member.get("name", ""),
                     "designation": member.get("designation", ""),
@@ -92,10 +102,12 @@ def get_members():
                 })
             return jsonify(limited_data)
             
-        # Admin gets all information (na naka-alphabetical order na rin!)
-        return jsonify(res.data)
+        # Admin gets all information (na naka-alphabetical order na rin via Python sort!)
+        return jsonify(sorted_data)
         
     except Exception as e:
+        # I-print sa logs ang tunay na dahilan kung bakit sumasabog ang code
+        print("❌ CRITICAL: Error sa /get_members route ->", str(e))
         return jsonify({"success": False, "error": str(e)}), 500
 
 # Upload post with attachments (members/leaders)
