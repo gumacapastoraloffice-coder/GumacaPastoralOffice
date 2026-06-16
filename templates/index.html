@@ -82,7 +82,10 @@
 
                 <!-- 🔹 Member registration form -->
                 <div class="form-grid">
-                    <div class="field"><label for="m-name">Fullname</label><input type="text" id="m-name"></div>
+                    <div class="field full-width">
+                            <label for="m-fullname">Full Name <span style="color: var(--gold-dark); font-size: 11px;">(Format: Lastname, Firstname Middlename)</span></label>
+                            <input type="text" id="m-fullname" placeholder="e.g., Dela Cruz, Juan Mercado" required>
+                    </div>
                     <div class="field"><label for="m-parish">Parish</label><input type="text" id="m-parish"></div>
                     <div class="field"><label for="m-birth">Birthdate</label><input type="date" id="m-birth"></div>
                     <div class="field"><label for="m-age">Age</label><input type="number" id="m-age"></div>
