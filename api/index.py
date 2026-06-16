@@ -9,7 +9,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 app = Flask(__name__, 
             template_folder=os.path.join(BASE_DIR, 'templates'),
             static_folder=os.path.join(BASE_DIR, 'static'))
-app.secret_key = 'gumaca_diocese_2026'   # Secret key for session management
+
+# Mas pinatibay na session configuration para iwas logout sa Vercel serverless environment
+app.secret_key = os.getenv("SECRET_KEY", "gumaca_diocese_secured_key_2026")
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # ============================
 # SUPABASE CONFIGURATION
@@ -37,6 +41,7 @@ def login():
     data = request.json
     if data.get('username') == "admin" and data.get('password') == "GumacaDiocese":
         session['logged_in'] = True
+        session.permanent = True # Pinapanatiling buhay ang session kahit mag-refresh
         return jsonify({"success": True})
     return jsonify({"success": False, "message": "Invalid Credentials"}), 401
 
@@ -49,13 +54,21 @@ def logout():
 # Register new member (admin only)
 @app.route('/register_member', methods=['POST'])
 def register_member():
+    # 1. Pagsuri kung ang gumagamit ay naka-login bilang admin
     if not session.get('logged_in'):
-        return jsonify({"success": False, "error": "Unauthorized"}), 403
+        print("❌ Security Trigger: Subok mag-save ang user na hindi admin o na-logout.")
+        return jsonify({"success": False, "error": "Unauthorized Session. Please re-login as Admin."}), 403
+        
     try:
         data = request.json
-        supabase.table("members").insert(data).execute()
+        print("📥 Papasok na Data sa Database:", data) # Makita natin sa logs kung anong pinapasa ng JS
+        
+        # 2. Pagpasa ng record data object direkta sa iyong Supabase core engine table
+        res = supabase.table("members").insert(data).execute()
         return jsonify({"success": True})
+        
     except Exception as e:
+        print("❌ Supabase DB Exception Logged:", str(e)) # Makikita sa Vercel log kung anong column ang may mali
         return jsonify({"success": False, "error": str(e)}), 400
 
 # Get all members (with access level control)
@@ -94,21 +107,13 @@ def upload_post():
 
         uploaded_urls = []
         for file in files:
-            # Read file as bytes
             file_bytes = file.read()
-
-            # Generate a unique filename (timestamp + uuid) to avoid duplicates
             base, ext = os.path.splitext(file.filename)
             unique_name = f"{int(time.time() * 1000)}_{uuid.uuid4().hex}{ext}"
-
-            # Upload to Supabase Storage bucket
             supabase.storage.from_(BUCKET_NAME).upload(unique_name, file_bytes)
-
-            # Get public URL
             public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(unique_name)
             uploaded_urls.append(public_url)
 
-        # Save post record in Supabase "posts" table
         supabase.table("posts").insert({
             "content": content,
             "attachments": uploaded_urls
