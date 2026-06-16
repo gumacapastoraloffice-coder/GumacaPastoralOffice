@@ -42,35 +42,56 @@ async function handleLogin() {
     else alert("Maling login details!");
 }
 
-/* ============================
-   MEMBER REGISTRATION
-   ============================ */
+// =====================================================
+// SAVE MEMBER DATA TO DATABASE (FULLNAME VERSION)
+// =====================================================
 async function saveMember() {
-    const data = {
-        name: document.getElementById('m-name').value,
-        parish: document.getElementById('m-parish').value,
+    const fullNameValue = document.getElementById('m-fullname').value.trim();
+
+    // Validation para masiguradong may laman ang pangalan
+    if (!fullNameValue) {
+        alert("⚠️ Please provide the Full Name.");
+        return;
+    }
+
+    // Friendly reminder sa screen kung walang kuwit (,) na nilagay ang nag-fill up
+    if (!fullNameValue.includes(',')) {
+        const proceed = confirm("💡 Notice: You didn't include a comma (,). Make sure the format is 'Lastname, Firstname'. Do you want to proceed anyway?");
+        if (!proceed) return;
+    }
+
+    // Direktang ipapasa ang nakasulat na pangalan sa database
+    const memberData = {
+        name: fullNameValue, // Kung ano ang tinype (e.g., "Dela Cruz, Juan") ito ang mase-save
+        parish: document.getElementById('m-parish').value.trim(),
         birthdate: document.getElementById('m-birth').value,
         age: document.getElementById('m-age').value,
         joined_year: document.getElementById('m-joined').value,
-        email: document.getElementById('m-email').value,
-        fb_account: document.getElementById('m-fb').value,
-        mobile_account: document.getElementById('m-mobile').value,
-        organization: document.getElementById('m-org').value,
-        designation: document.getElementById('m-desig').value,
-        address: document.getElementById('m-addr').value
+        email: document.getElementById('m-email').value.trim(),
+        fb_account: document.getElementById('m-fb').value.trim(),
+        mobile: document.getElementById('m-mobile').value.trim(),
+        organization: document.getElementById('m-org').value.trim(),
+        designation: document.getElementById('m-desig').value.trim(),
+        address: document.getElementById('m-addr').value.trim()
     };
 
-    const res = await fetch('/register_member', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    });
+    try {
+        const response = await fetch('/register_member', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(memberData)
+        });
 
-    if (res.ok) {
-        alert("Saved!");
-        location.reload();
-    } else {
-        alert("Error saving data.");
+        if (response.ok) {
+            alert("✨ Record saved successfully!");
+            location.reload();
+        } else {
+            const errLog = await response.json();
+            alert("❌ Database error: " + (errLog.message || "Unable to save entry."));
+        }
+    } catch (error) {
+        console.error("Network Exception Logged:", error);
+        alert("❌ Failed to connect to server.");
     }
 }
 
